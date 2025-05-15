@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox, filedialog
+from tkinter import messagebox, filedialog, font
 from fpdf import FPDF
 import webbrowser
 from PIL import Image, ImageTk
@@ -24,10 +24,15 @@ candidatos = []
 imagens_candidatos = []
 votacao_ativa = False
 
+# Definição das fontes
+fonte_titulo = font.Font(family="Halvetica" , size=20, weight="bold")
+fonte_media = font.Font(family="Halvetica" , size=15, weight="bold")
+fonte_pequena = font.Font(family="", size=0)
+
 def mostra_menu():
     janela.geometry(f"1200x900+{posx}+{posy}") # Define o tamanho da janela principal
     janela.configure(padx=20, pady=20) # Adiciona margem grande
-    label_menu = tk.Label(janela, text="Escolha uma opção:", bg="lightgray")
+    label_menu = tk.Label(janela, text="Escolha uma opção:", bg="lightgray", font=fonte_titulo)
     label_menu.pack(pady=10) # Espaçamento entre o rótulo e os botões
     botao_cadastro = tk.Button(janela, text="Cadastro de Candidato", command=cadastra_candidato)
     botao_cadastro.pack(pady=5) # Espaçamento entre os botões
@@ -37,21 +42,15 @@ def mostra_menu():
     botao_encerrar.pack(pady=5)
     janela.mainloop()
 
-def exibir_imagem(tela):
-        for i in imagens_candidatos:
-            imagem = Image.open(i)
+def carregar_imagem(caminho):
+    imagem = Image.open(caminho)
+    imagem_redimensionada = imagem.resize((350, 350))
+    return ImageTk.PhotoImage(imagem_redimensionada)
 
-            image_tk = ImageTk.PhotoImage(imagem)
-
-
-        imagem = Image.open(imagens_candidatos[-1])
-
-        imagem_tk = ImageTk.PhotoImage(imagem)
-
-        label_imagem = tk.Label(tela)
-        label_imagem.config(image=imagem_tk)
-        label_imagem.image = imagem_tk
-        label_imagem.pack(pady=5)
+def exibir_imagens(tela, imagem_tk):
+    label_imagem = tk.Label(tela, image=imagem_tk)
+    label_imagem.image = imagem_tk
+    label_imagem.pack(pady=5)
 
 def cadastra_candidato():
     janela_cadastro = tk.Toplevel(janela)
@@ -75,21 +74,30 @@ def cadastra_candidato():
         )
         if caminho:
             imagens_candidatos.append(caminho)
-            exibir_imagem(janela_cadastro)
 
-            imagem = Image.open(imagens_candidatos[-1])
+            imagem_tk = carregar_imagem(caminho)
 
-            imagem_tk = ImageTk.PhotoImage(imagem)
+            candidato_imgs["imagem_path"] = caminho
+            candidato_imgs["imagem_tk"] = imagem_tk
 
-            label_imagem = tk.Label(janela_cadastro)
-            label_imagem.config(image=imagem_tk)
-            label_imagem.image = imagem_tk
-            label_imagem.pack(pady=5)
+            exibir_imagens(janela_cadastro, imagem_tk)
+            # exibir_imagem(janela_cadastro)
+
+            # imagem = Image.open(imagens_candidatos[-1])
+
+            # imagem_tk = ImageTk.PhotoImage(imagem)
+
+            # label_imagem = tk.Label(janela_cadastro)
+            # label_imagem.config(image=imagem_tk)
+            # label_imagem.image = imagem_tk
+            # label_imagem.pack(pady=5)
+
+    candidato_imgs = {}
 
     entrada_imagem = tk.Button(janela_cadastro, text="Escolher imagem:", command=escolher_imagem)
     entrada_imagem.pack(pady=5)
 
-    def salvar_candidato(foto):
+    def salvar_candidato():
         numero = entrada_numero.get()
         for c in candidatos:
             if c['numero'] == numero:
@@ -97,8 +105,12 @@ def cadastra_candidato():
                 return
         nome = entrada_nome.get()
         partido = entrada_partido.get()
-        foto = imagem
-        candidatos.append({"numero": numero, "nome": nome, "partido": partido, "foto": foto, "votos": 0})
+        
+        # if "imagem_path" not in candidato_imgs:
+        #     messagebox.showinfo("Erro", "Foto do candidato não carregada.")
+        #     return
+
+        candidatos.append({"numero": numero, "nome": nome, "partido": partido, "foto": candidato_imgs["imagem_path"], "imagem_tk": candidato_imgs["imagem_tk"], "votos": 0})
 
         messagebox.showinfo("Sucesso", "Candidato cadastrado com sucesso!")
 
@@ -117,6 +129,7 @@ def registrar_voto():
         janela_votacao = tk.Toplevel(janela)
         janela_votacao.title("Votação")
         janela_votacao.geometry(f"1200x900+{posx}+{posy}")
+        janela_votacao.configure(bg="lightgray")
         tk.Label(janela_votacao, text="Digite sua matrícula:").pack(pady=5)
         entrada_matricula = tk.Entry(janela_votacao)
         entrada_matricula.pack(pady=5)
@@ -178,7 +191,7 @@ def imprime_relatorio():
     if total_votos > 0:
         for candidato in candidatos:
             saida_pdf.cell(190, 10, txt=f"{candidato['nome']} ({candidato['partido']}):{candidato['votos']} votos", ln=True, align='C')
-            saida_pdf.image()
+            saida_pdf.image(candidato['foto'], 70, saida_pdf.get_y(), 50, 50)
     else:
         saida_pdf.cell(190, 10, txt="Não houve votos válidos.", ln=True, align='C')
         botao_fechar = tk.Button(janela_relatorio, text="Fechar", command=janela_relatorio.destroy)

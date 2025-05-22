@@ -3,6 +3,7 @@ from tkinter import messagebox, filedialog, font
 from fpdf import FPDF
 from PIL import Image, ImageTk
 import json
+from datetime import datetime
 import webbrowser
 
 # Criação da janela pelo tkinter
@@ -20,11 +21,8 @@ posx = (largura_tela - janela_largura) // 2 # Posição x da janela (ponto mais 
 posy = (altura_tela - janela_altura) // 2 # Posição y da janela (ponto mais alto da window)
 
 # Criação da base do arquivo PDF que vai conter os resultados da votação
-saida_pdf = FPDF() # Inicializa o arquivo onde será atribuido
-
+saida_pdf = FPDF() # Inicializa o arquivo onde será atribuid
 saida_pdf.add_page() # Adciona uma página ao PDF
-saida_pdf.set_font('Arial', size=30) # Define a fonte do PDF
-saida_pdf.cell(190, 0, txt="Resultado da Votação:", ln=True, align="C")
 
 # Váriaveis para funcionalidade do código
 with open("candidatos.json", "r", encoding="utf-8") as arquivo:
@@ -33,8 +31,8 @@ votacao_ativa = False
 
 # Definição das fontes
 fonte_titulo = font.Font(family="Helvetica", size=40, weight="bold")
-fonte_media = font.Font(family="Helvetica", size=15, weight="bold")
-fonte_pequena = font.Font(family="Helvetica", size=5)
+fonte_media = font.Font(family="Helvetica", size=19, weight="bold")
+fonte_pequena = font.Font(family="Helvetica", size=13)
 
 # Mostra a tela inicial
 def mostra_menu():
@@ -153,7 +151,7 @@ def cadastra_candidato():
                             "foto": candidato_imgs["imagem_path"] if candidato_imgs["imagem_path"] else None,
                             "votos": 0})
 
-        messagebox.showinfo("Sucesso", "Candidato cadastrado com sucesso!")
+        messagebox.showinfo("Sucesso", "Candidato cadastrado com sucesso!") # Retorna menssagem em pop-up
 
         # Reseta a tela
         janela_cadastro.destroy()
@@ -165,11 +163,27 @@ def cadastra_candidato():
 
     tk.Button(janela_cadastro, text="Salvar", command=salvar_candidato).pack(pady=5) # Linha 45; Linha 46
 
+# Inicia a votação e a formatação do PDF
 def iniciar_votacao():
+    # Váriavel que permite a execução de registrar voto e impede encerrar votação sem iniciar antes
     global votacao_ativa
     votacao_ativa = True
+
+    # Informações de tempo
+    agora = datetime.now() # Tempo atual do mundo, mês, dia, ano, hora, minuto, segundo, milisegundos
+    data_votacao = agora.date() # Apenas a data do tempo atual do mundo
+    inicio_votacao = agora.strftime("%H:%M:%S") # Apenas as horas, minutos e segundos do tempo atual do mundo
+
+    # Formatações do PDF
+    saida_pdf.set_font('Arial', size=12) # Define a fonte a paritr desse ponto do PDF
+    saida_pdf.cell(95, 10, txt=f"Data: {data_votacao}", ln=False, align="L") # Data no topo a esquerda
+    saida_pdf.cell(95, 10, txt=f"Inicio da votação: {inicio_votacao}", ln=True, align="R") # Hora no topo a direita
+    saida_pdf.set_font('Arial', 'B', size=30) # Define a fonte a paritr desse ponto do PDF
+    saida_pdf.cell(190, 40, txt="Resultados da votação:", ln=True, align="C") # Titulo centralizado abaixo das informações de tempo
+
     registrar_voto()
 
+# Mostra os candidatos disponíveis e registra os votos do usuário 
 def registrar_voto():
     if votacao_ativa:
         janela.withdraw() # Linha 65
@@ -182,63 +196,81 @@ def registrar_voto():
         janela_votacao.geometry(f"{janela_largura}x{janela_altura}+{posx}+{posy}") # linha 40
 
         # Conteúdo da janela atual
-        tk.Label(janela_votacao, text="Digite sua matrícula:").pack(pady=5) # Linha 42
-        entrada_matricula = tk.Entry(janela_votacao)
-        entrada_matricula.pack(pady=5)
-        tk.Label(janela_votacao, text="Digite o número do candidato:").pack(pady=5) # Linha 42
-        entrada_voto = tk.Entry(janela_votacao)
-        entrada_voto.pack(pady=5)
-        tk.Label(janela_votacao, text="Candidatos disponiveis").pack(pady=5) # Linha 42
+        # Frame que envolve toda a janela
+        frame_principal = tk.Frame(janela_votacao)
+        frame_principal.pack(fill="both", expand=True, padx=10, pady=10)
 
+        # Lado esquerdo
+        frame_esquerda = tk.Frame(frame_principal)
+        frame_esquerda.grid(row=0, column=0, sticky="nsw", padx=10, pady=10)
+
+        tk.Button(frame_esquerda, text="Voltar", command=lambda: (janela_votacao.destroy(), janela.deiconify())).pack(padx=10, pady=(20,5), anchor="w") # Linha
+        tk.Label(frame_esquerda, text="Digite sua matrícula:", font=fonte_pequena).pack(padx=10, pady=5, anchor="w") # Linha 42
+        entrada_matricula = tk.Entry(frame_esquerda)
+        entrada_matricula.pack(padx=10, pady=5, anchor="w")
+        tk.Label(frame_esquerda, text="Digite o número do candidato:", font=fonte_pequena).pack(padx=10, pady=5, anchor="w") # Linha 42
+        entrada_voto = tk.Entry(frame_esquerda)
+        entrada_voto.pack(padx=10, pady=5, anchor="w")
+
+    # Valida as informações e altera o JSON
     def confirmar_voto():
-        matricula = entrada_matricula.get()
-        voto = entrada_voto.get()
+        matricula = entrada_matricula.get() # Linha
+        voto = entrada_voto.get() # Linha
         if not matricula:
-            messagebox.showwarning("Erro", "Matrícula não pode ser vazia.")
-            return
-        candidato_escolhido = next((c for c in candidatos if c["numero"] == voto), None)
-        if not candidato_escolhido:
-            messagebox.showwarning("Erro", "Número de candidato inválido.")
-            return
-        if candidato_escolhido:
-            confirmar = messagebox.askyesno("Confirmação", f"Confirmar voto para {candidato_escolhido['nome']} ({candidato_escolhido['partido']})?")
+            messagebox.showwarning("Erro", "Matrícula não pode ser vazia.") # Linha
+            return # Linha
+        c_e = next((c for c in candidatos if c["numero"] == voto), None) # c_e = candidato de número igual ao voto
+        if not c_e:
+            messagebox.showwarning("Erro", "Número de candidato inválido.") # Linha
+            return # Linha
+        if c_e:
+            confirmar = messagebox.askyesno("Confirmação",
+                f"Confirmar voto para {c_e['nome']} ({c_e['partido']})?") # pop-up de confirmação (sim/não)
 
+            # Finaliza operação de voto
             if confirmar:
-                candidato_escolhido["votos"] += 1
-                messagebox.showinfo("Sucesso", "Voto registrado com sucesso!")
-                janela_votacao.destroy()
-                registrar_voto()
+                c_e["votos"] += 1
+                messagebox.showinfo("Sucesso", "Voto registrado com sucesso!") # Linha
             else:
-                confirmar = messagebox.askyesno("Confirmação", "Candidato inexistente. Confirmar voto nulo?")
+                confirmar = messagebox.askyesno("Confirmação", "Candidato inexistente. Confirmar voto nulo?")  # Linha
                 if confirmar:
-                    messagebox.showinfo("Sucesso", "Voto nulo registrado!")
-                    janela_votacao.destroy()
-                    registrar_voto()
+                    messagebox.showinfo("Sucesso", "Voto nulo registrado!")  # Linha
+
+            # Linha
+            janela_votacao.destroy()
+            registrar_voto()
 
             # Linha 161
             with open("candidatos.json", "w", encoding="utf-8") as arquivo:
                 json.dump(candidatos, arquivo, indent=4, ensure_ascii=False)
 
-    botao_votar = tk.Button(janela_votacao, text="Votar", command=confirmar_voto, bg="green") # Linha 45
-    botao_votar.pack(pady=5)
+    # Centro
+    frame_central = tk.Frame(frame_principal)
+    frame_central.grid(row=0, column=1, sticky="n", padx=10, pady=10)
 
-    voltar = tk.Button(janela_votacao, text="Voltar", command=lambda: (janela_votacao.destroy(), janela.deiconify())) # Linha 45; Linha 117
-    voltar.pack(pady=5)
+    # Linha
+    botao_votar = tk.Button(frame_central, text="Votar", command=confirmar_voto, bg="green") # Linha 45
+    botao_votar.pack(side="bottom", pady=10) # Linha
+
+    # Lado direito
+    frame_direita = tk.Frame(frame_principal)
+    frame_direita.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
+
+    tk.Label(frame_direita, text="Candidatos disponiveis", font=fonte_pequena).pack(pady=5) # Linha 42
 
     # Frame com barra de rolagem para os candidatos
-    frame_scroll = tk.Frame(janela_votacao)
-    frame_scroll.pack(fill="both", expand=True, pady=10)
+    frame_scroll = tk.Frame(frame_direita) # Cria um frame na janela
+    frame_scroll.pack(fill="both", expand=True) # Definições de proporção do frame
 
-    canvas = tk.Canvas(frame_scroll, bg="#f0f0f0")
-    scrollbar = tk.Scrollbar(frame_scroll, orient="vertical", command=canvas.yview)
-    canvas.configure(yscrollcommand=scrollbar.set)
+    canvas = tk.Canvas(frame_scroll, bg="#f0f0f0") # Cria um canvas dentro do frame criado
+    scrollbar = tk.Scrollbar(frame_scroll, orient="vertical", command=canvas.yview) # Cria uma scrollbar vertical que muda o y visivel
+    canvas.configure(yscrollcommand=scrollbar.set) # Relaciona o canvas (conteúddo visivel) com o estado da scrollbar
 
-    scrollable_frame = tk.Frame(canvas, bg="#f0f0f0")
-
+    scrollable_frame = tk.Frame(canvas, bg="#f0f0f0") # Mais um frame (onde o conteúdo será inserido)
     scrollable_frame.bind(
         "<Configure>",
         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-    )
+    ) # Define toda a área do canvas como scrollavel
 
     canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
     canvas.pack(side="left", fill="both", expand=True)
@@ -257,7 +289,14 @@ def registrar_voto():
         label_info = tk.Label(frame_candidato, text=info, bg="white", justify="center") # Linha 42
         label_info.pack()
 
+    frame_principal.grid_columnconfigure(0, weight=0)
+    frame_principal.grid_columnconfigure(1, weight=1)
+    frame_principal.grid_columnconfigure(2, weight=2)
+
 def imprime_relatorio():
+    if not votacao_ativa:
+        messagebox.showinfo("Erro", "Votação não pode ser encerrada antes de ser iniciada.")
+        return
     janela.withdraw() # Linha 65
     janela_relatorio = tk.Toplevel() # Linha 66
     janela_relatorio.protocol("WM_DELETE_WINDOW", janela.destroy) # Linha 67
@@ -271,8 +310,13 @@ def imprime_relatorio():
     total_votos = sum(c["votos"] for c in candidatos)
     botao = tk.Button(janela_relatorio, text="Voltar", command=lambda: (janela.deiconify(), janela_relatorio.destroy())) # Linha 45; Linha 117
     botao.pack(pady=5)
+
+    # Preenche a página e o PDF com conteúdo
     if total_votos > 0:
+        mais_votos = 0
         for candidato in candidatos:
+            mais_votos = candidato["votos"] if candidato["votos"] > mais_votos else mais_votos
+            print(mais_votos)
             saida_pdf.set_font("Arial", size=12)
             saida_pdf.cell(190, 0, txt=f"{candidato['nome']} ({candidato['partido']}): {candidato['votos']} votos", ln=True, align='C')
             if candidato["foto"]:
@@ -280,6 +324,7 @@ def imprime_relatorio():
     else:
         saida_pdf.set_font("Arial", size=20)
         saida_pdf.cell(190, 50, txt="Não houve votos válidos.", ln=True, align='C')
+        saida_pdf.image("logo-je.png", 55, saida_pdf.get_y(), 100)
 
     def gerar_pdf():
         saida_pdf.output('Resultados_Votação.pdf')
@@ -289,7 +334,6 @@ def imprime_relatorio():
 
 def encerrar_votacao():
     global votacao_ativa
-    votacao_ativa = False
     imprime_relatorio()
 
 mostra_menu()

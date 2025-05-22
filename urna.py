@@ -23,7 +23,8 @@ posy = (altura_tela - janela_altura) // 2 # Posição y da janela (ponto mais al
 saida_pdf = FPDF() # Inicializa o arquivo onde será atribuido
 
 saida_pdf.add_page() # Adciona uma página ao PDF
-saida_pdf.set_font('Arial', size=12) # Define a fonte do PDF
+saida_pdf.set_font('Arial', size=30) # Define a fonte do PDF
+saida_pdf.cell(190, 0, txt="Resultado da Votação:", ln=True, align="C")
 
 # Váriaveis para funcionalidade do código
 with open("candidatos.json", "r", encoding="utf-8") as arquivo:
@@ -272,17 +273,19 @@ def imprime_relatorio():
     botao.pack(pady=5)
     if total_votos > 0:
         for candidato in candidatos:
+            saida_pdf.set_font("Arial", size=12)
+            saida_pdf.cell(190, 0, txt=f"{candidato['nome']} ({candidato['partido']}): {candidato['votos']} votos", ln=True, align='C')
             if candidato["foto"]:
-                saida_pdf.image(candidato['foto'], 70, saida_pdf.get_y(), 50, 50)
-            saida_pdf.cell(190, 10, txt=f"{candidato['nome']} ({candidato['partido']}):{candidato['votos']} votos", ln=True, align='C')
+                saida_pdf.image(candidato['foto'], 80, saida_pdf.get_y(), 50, 50)
     else:
-        saida_pdf.cell(190, 10, txt="Não houve votos válidos.", ln=True, align='C')
+        saida_pdf.set_font("Arial", size=20)
+        saida_pdf.cell(190, 50, txt="Não houve votos válidos.", ln=True, align='C')
 
     def gerar_pdf():
         saida_pdf.output('Resultados_Votação.pdf')
         webbrowser.open('Resultados_Votação.pdf')
 
-    tk.Button(janela_relatorio, text="Gerar PDF", command=gerar_pdf) # Linha 45
+    tk.Button(janela_relatorio, text="Gerar PDF", command=gerar_pdf).pack() # Linha 45
 
 def encerrar_votacao():
     global votacao_ativa

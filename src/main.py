@@ -7,6 +7,12 @@ def main(page: ft.Page):
     t2 = ft.Text("Txt B", size=20)
     t3 = ft.Text("Txt C", size=20)
 
+    first_name = ft.TextField()
+    last_name = ft.TextField()
+    # first_name.disabled = True
+    # last_name.disabled = True
+    page.add(first_name, last_name)
+
     def aumento(e):
         if t1.size == 20:
             t1.size *= 5

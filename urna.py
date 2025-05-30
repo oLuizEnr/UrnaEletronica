@@ -176,8 +176,10 @@ def iniciar_votacao():
 
     # Formatações do PDF
     saida_pdf.set_font('Arial', size=12) # Define a fonte a paritr desse ponto do PDF
-    saida_pdf.cell(95, 10, txt=f"Data: {data_votacao}", ln=False, align="L") # Data no topo a esquerda
-    saida_pdf.cell(95, 10, txt=f"Inicio da votação: {inicio_votacao}", ln=True, align="R") # Hora no topo a direita
+    saida_pdf.cell(95, 20, txt=f"Data: {data_votacao}", ln=False, align="L") # Data no topo a esquerda
+    saida_pdf.image("logo-je.png", 75, 10, 50)
+    saida_pdf.cell(95, 20, txt=f"Inicio da votação: {inicio_votacao}", ln=True, align="R") # Hora no topo a direita
+    saida_pdf.set_y(saida_pdf.get_y() + 10)
     saida_pdf.set_font('Arial', 'B', size=30) # Define a fonte a paritr desse ponto do PDF
     saida_pdf.cell(190, 40, txt="Resultados da votação:", ln=True, align="C") # Titulo centralizado abaixo das informações de tempo
 
@@ -246,7 +248,7 @@ def registrar_voto():
 
     # Centro
     frame_central = tk.Frame(frame_principal)
-    frame_central.grid(row=0, column=1, sticky="n", padx=10, pady=10)
+    frame_central.grid(row=0, column=1, sticky="ne", padx=10, pady=10)
 
     # Linha
     botao_votar = tk.Button(frame_central, text="Votar", command=confirmar_voto, bg="green") # Linha 45
@@ -254,7 +256,7 @@ def registrar_voto():
 
     # Lado direito
     frame_direita = tk.Frame(frame_principal)
-    frame_direita.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
+    frame_direita.grid(row=0, column=2, sticky="nsw", padx=10, pady=10)
 
     tk.Label(frame_direita, text="Candidatos disponiveis", font=fonte_pequena).pack(pady=5) # Linha 42
 
@@ -295,7 +297,7 @@ def registrar_voto():
 
 def imprime_relatorio():
     if not votacao_ativa:
-        messagebox.showinfo("Erro", "Votação não pode ser encerrada antes de ser iniciada.")
+        messagebox.showinfo("Erro", "A votação não pode ser encerrada antes de ser iniciada.")
         return
     janela.withdraw() # Linha 65
     janela_relatorio = tk.Toplevel() # Linha 66
@@ -313,18 +315,43 @@ def imprime_relatorio():
 
     # Preenche a página e o PDF com conteúdo
     if total_votos > 0:
-        mais_votos = 0
-        for candidato in candidatos:
-            mais_votos = candidato["votos"] if candidato["votos"] > mais_votos else mais_votos
-            print(mais_votos)
-            saida_pdf.set_font("Arial", size=12)
-            saida_pdf.cell(190, 0, txt=f"{candidato['nome']} ({candidato['partido']}): {candidato['votos']} votos", ln=True, align='C')
+        candidatos_ord = sorted(candidatos, key=lambda c: c["votos"], reverse=True)
+        mais_votado = candidatos_ord[0]
+
+        saida_pdf.set_font("Arial", size=12)
+        saida_pdf.cell(190, 0, txt=f"{mais_votado['nome']} ({mais_votado['partido']}): {mais_votado['votos']} votos", ln=True, align='C')
+        if mais_votado["foto"]:
+            atual_y = saida_pdf.get_y()
+            saida_pdf.image(mais_votado['foto'], 65, (atual_y+5), 80, 60)
+            saida_pdf.set_y(atual_y + 70)
+
+        outros_votados = candidatos_ord[1:]
+        
+        for i, candidato in enumerate(outros_votados):
+            if saida_pdf.get_y() + 70 >= 4000:
+                saida_pdf.add_page()
+            alinhamento = 'L' if i % 2 == 0 else 'R'
+            mudar_linha = True if alinhamento == 'R' else False
+            posFoto = 10 if alinhamento == 'L' else 120
+            saida_pdf.cell(95, 0, txt=f"{candidato['nome']} ({candidato['partido']}): {candidato['votos']} votos", ln=mudar_linha, align=alinhamento)
             if candidato["foto"]:
-                saida_pdf.image(candidato['foto'], 80, saida_pdf.get_y(), 50, 50)
+                atual_y = saida_pdf.get_y()
+                saida_pdf.image(candidato['foto'], posFoto, (atual_y+5), 80, 60)
+            else:
+                # Retângulo cinza
+                saida_pdf.set_fill_color(200, 200, 200)  # Cinza claro
+                saida_pdf.rect(posFoto, (atual_y+5), 80, 60, 'F')  # 'F' = filled
+
+                # Texto "Sem imagem" centralizado
+                saida_pdf.set_xy(posFoto, (atual_y+5) + 60 / 2 - 5)  # Centralizado verticalmente
+                saida_pdf.set_font("Arial", size=10)
+                saida_pdf.cell(80, 10, "Sem imagem", border=0, ln=0, align='C')
+            if alinhamento == 'R':
+                saida_pdf.set_y(atual_y + 70)
+
     else:
         saida_pdf.set_font("Arial", size=20)
         saida_pdf.cell(190, 50, txt="Não houve votos válidos.", ln=True, align='C')
-        saida_pdf.image("logo-je.png", 55, saida_pdf.get_y(), 100)
 
     def gerar_pdf():
         saida_pdf.output('Resultados_Votação.pdf')

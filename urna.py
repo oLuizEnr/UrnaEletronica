@@ -21,10 +21,6 @@ altura_tela = janela.winfo_screenheight() # altura da tela do usuário
 posx = (largura_tela - janela_largura) // 2 # Posição x da janela (ponto mais a esquerda da window)
 posy = (altura_tela - janela_altura) // 2 # Posição y da janela (ponto mais alto da window)
 
-# Criação da base do arquivo PDF que vai conter os resultados da votação
-saida_pdf = FPDF() # Inicializa o arquivo onde será atribuid
-saida_pdf.add_page() # Adciona uma página ao PDF
-
 # Váriaveis para funcionalidade do código
 with open("candidatos.json", "r", encoding="utf-8") as arquivo:
     candidatos = json.load(arquivo) # Abre o json e insere os dados dele em candidatos
@@ -32,8 +28,8 @@ votacao_ativa = False # Impede o usuário de ver os resultados antes de iniciar 
 
 # Definição das fontes
 fonte_titulo = font.Font(family="Helvetica", size=40, weight="bold")
-fonte_media = font.Font(family="Helvetica", size=19, weight="bold")
-fonte_pequena = font.Font(family="Helvetica", size=13)
+fonte_media = font.Font(family="Helvetica", size=13)
+fonte_pequena = font.Font(family="Helvetica", size=9)
 
 # Mostra a tela inicial
 def mostra_menu():
@@ -49,15 +45,15 @@ def mostra_menu():
     frame_botoes.pack(expand=True, pady=20) # Espaçamento vertical até o próximo widget na janela
 
     botao1 = tk.Button(frame_botoes, text="Cadastrar Candidatos", width=23, height=5, bg="#3d9dd4", fg="#ffffff",
-                        font=fonte_pequena, command=cadastra_candidato) # Botão que chama função determinada ao clicar
+                        font=fonte_media, command=cadastra_candidato) # Botão que chama função determinada ao clicar
     botao1.pack(side="left", padx=10, expand=True) # Botão alinhado a esquerda com um espaçamento horizontal
 
     botao2 = tk.Button(frame_botoes, text="Liberar Votação", width=23, height=5, bg="#45a755", fg="#ffffff",
-                        font=fonte_pequena, command=liberar_votacao) # Linha 45
+                        font=fonte_media, command=liberar_votacao) # Linha 45
     botao2.pack(side="left", padx=10, expand=True) # Linha 46
 
     botao3 = tk.Button(frame_botoes, text="Ver Resultados", width=23, height=5, bg="#d49c14", fg="#ffffff",
-                        font=fonte_pequena, command=ver_resultados) # Linha 45
+                        font=fonte_media, command=ver_resultados) # Linha 45
     botao3.pack(side="left", padx=10, expand=True) # Linha 46
 
     janela.mainloop() # Mantém a janela rodando (sem isso ela abriria e fecharia logo em seguida, sem se quer ser visivel)
@@ -98,7 +94,7 @@ def cadastra_candidato():
         janela_cadastro.destroy()
         janela.deiconify() # Pop-up de verificação para voltar caso haja input preenchido
 
-    botao_voltar = tk.Button(janela_cadastro, text="Voltar", bg="#e11c1c", fg="#ffffff", font=fonte_pequena,
+    botao_voltar = tk.Button(janela_cadastro, text="Voltar", bg="#e11c1c", fg="#ffffff", font=fonte_media,
                                 command=voltar) # Linha 45; Destrói janela atual e desesconde a principal
     botao_voltar.pack(anchor="e") # Linha 46
 
@@ -112,16 +108,16 @@ def cadastra_candidato():
     frame_inputs = tk.Frame(frame_geral)
     frame_inputs.pack(expand=True, side="left", anchor="sw")
 
-    tk.Label(frame_inputs, text="Número do Candidato:", font=fonte_pequena).pack(pady=6, anchor="w") # Linha 42
-    entrada_numero = tk.Entry(frame_inputs, width=50) # Input que recebe "Número do Candidato"
+    tk.Label(frame_inputs, text="Número do Candidato:", font=fonte_media).pack(pady=6, anchor="w") # Linha 42
+    entrada_numero = tk.Entry(frame_inputs, width=50, font=fonte_pequena) # Input que recebe "Número do Candidato"
     entrada_numero.pack(pady=6) # Linha 46
 
-    tk.Label(frame_inputs, text="Nome do Candidato:", font=fonte_pequena).pack(pady=6, anchor="w") # Linha 42
-    entrada_nome = tk.Entry(frame_inputs, width=50) # Input que recebe "Nome do Candidato"
+    tk.Label(frame_inputs, text="Nome do Candidato:", font=fonte_media).pack(pady=6, anchor="w") # Linha 42
+    entrada_nome = tk.Entry(frame_inputs, width=50, font=fonte_pequena) # Input que recebe "Nome do Candidato"
     entrada_nome.pack(pady=6) # Linha 46
 
-    tk.Label(frame_inputs, text="Partido do Candidato:", font=fonte_pequena).pack(pady=6, anchor="w") # Linha 42
-    entrada_partido = tk.Entry(frame_inputs, width=50) # Input que recebe "Partido do Candidato"
+    tk.Label(frame_inputs, text="Partido do Candidato:", font=fonte_media).pack(pady=6, anchor="w") # Linha 42
+    entrada_partido = tk.Entry(frame_inputs, width=50, font=fonte_pequena) # Input que recebe "Partido do Candidato"
     entrada_partido.pack(pady=6) # Linha 46
     
     # Dicionário para guardar as informações ultima imagem escolhida
@@ -149,7 +145,7 @@ def cadastra_candidato():
     frame_imagem.pack(expand=True, side="right", anchor="s")
 
     botao_imagem = tk.Button(frame_imagem, text="Escolher imagem:", bg="#d49c14", fg="#ffffff",
-              font=fonte_pequena, command=escolher_imagem)
+              font=fonte_media, command=escolher_imagem)
     botao_imagem.pack(pady=5) # Linha 45; Linha 46
 
     container_imagem = tk.Frame(frame_imagem, width=200, height=150)
@@ -199,7 +195,7 @@ def cadastra_candidato():
             json.dump(candidatos, arquivo, indent=4, ensure_ascii=False)
 
     botao_salvar = tk.Button(janela_cadastro, text="Salvar", width=16, height=3, bg="#45a755", fg="#ffffff",
-              font=fonte_pequena, command=salvar_candidato)
+              font=fonte_media, command=salvar_candidato)
     botao_salvar.pack(side="bottom", anchor="s") # Linha 45; Linha 46
 
 # Inicia a votação e a formatação do PDF
@@ -214,15 +210,6 @@ def liberar_votacao():
     data_votacao = agora.date() # Apenas a data do tempo atual do mundo
     global inicio_votacao
     inicio_votacao = agora.strftime("%H:%M:%S") # Apenas as horas, minutos e segundos do tempo atual do mundo
-
-    # Formatações do PDF
-    saida_pdf.set_font('Arial', size=12) # Define a fonte a paritr desse ponto do PDF
-    saida_pdf.cell(95, 20, txt=f"Data: {data_votacao}", ln=False, align="L") # Data no topo a esquerda
-    saida_pdf.image("logo-je.png", 75, 10, 50)
-    saida_pdf.cell(95, 20, txt=f"Inicio da votação: {inicio_votacao}", ln=True, align="R") # Hora no topo a direita
-    saida_pdf.set_y(saida_pdf.get_y() + 10)
-    saida_pdf.set_font('Arial', 'B', size=30) # Define a fonte a paritr desse ponto do PDF
-    saida_pdf.cell(190, 40, txt="Resultados da votação:", ln=True, align="C") # Titulo centralizado abaixo das informações de tempo
 
     registrar_voto()
 
@@ -248,7 +235,7 @@ def registrar_voto():
             janela_votacao.destroy()
             janela.deiconify() # Pop-up de verificação para voltar caso haja input preenchido
 
-        botao_voltar = tk.Button(janela_votacao, text="Voltar", bg="#e11c1c", fg="#ffffff", font=fonte_pequena,
+        botao_voltar = tk.Button(janela_votacao, text="Voltar", bg="#e11c1c", fg="#ffffff", font=fonte_media,
                                     command=voltar) # Linha 45; Destrói janela atual e desesconde a principal
         botao_voltar.pack(padx=30, anchor="e") # Linha 46
 
@@ -262,14 +249,14 @@ def registrar_voto():
 
         # Lado esquerdo
         frame_esquerda = tk.Frame(frame_principal)
-        frame_esquerda.pack(side="left", expand=True)
+        frame_esquerda.pack(side="left", anchor="n", padx=10)
 
-        tk.Label(frame_esquerda, text="Digite sua matrícula:", font=fonte_pequena).pack(padx=10, pady=5, anchor="w") # Linha 42
-        entrada_matricula = tk.Entry(frame_esquerda)
-        entrada_matricula.pack(padx=10, pady=5, anchor="w")
-        tk.Label(frame_esquerda, text="Digite o número do candidato:", font=fonte_pequena).pack(padx=10, pady=5, anchor="w") # Linha 42
-        entrada_voto = tk.Entry(frame_esquerda)
-        entrada_voto.pack(padx=10, pady=5, anchor="w")
+        tk.Label(frame_esquerda, text="Digite sua matrícula:", font=fonte_media).pack(pady=5, anchor="w") # Linha 42
+        entrada_matricula = tk.Entry(frame_esquerda, width=50)
+        entrada_matricula.pack(pady=5, anchor="w")
+        tk.Label(frame_esquerda, text="Digite o número do candidato:", font=fonte_media).pack(pady=5, anchor="w") # Linha 42
+        entrada_voto = tk.Entry(frame_esquerda, width=50)
+        entrada_voto.pack(pady=5, anchor="w")
 
     # Valida as informações e altera o JSON
     def confirmar_voto():
@@ -304,22 +291,25 @@ def registrar_voto():
                 json.dump(candidatos, arquivo, indent=4, ensure_ascii=False)
 
     # Linha
-    botao_votar = tk.Button(janela_votacao, text="Votar", command=confirmar_voto, bg="green") # Linha 45
+    botao_votar = tk.Button(frame_esquerda, text="Votar", bg="#45a755", fg="#ffffff", font=fonte_media, command=confirmar_voto) # Linha 45
     botao_votar.pack(side="bottom", pady=10) # Linha
 
     # Lado direito
     frame_direita = tk.Frame(frame_principal)
-    frame_direita.pack(side="right", expand=True)
+    frame_direita.pack(side="right", anchor="n", fill="both", expand=True)
 
-    tk.Label(frame_direita, text="Candidatos disponiveis", font=fonte_pequena).pack(pady=5) # Linha 42
+    tk.Label(frame_direita, text="Candidatos disponiveis", font=fonte_media).pack(pady=5) # Linha 42
 
     # Frame com barra de rolagem para os candidatos
     frame_scroll = tk.Frame(frame_direita) # Cria um frame na janela
     frame_scroll.pack(fill="both", expand=True) # Definições de proporção do frame
 
-    canvas = tk.Canvas(frame_scroll, bg="#f0f0f0") # Cria um canvas dentro do frame criado
+    canvas = tk.Canvas(frame_scroll, bg="#f0f0f0", highlightthickness=0) # Cria um canvas dentro do frame criado
     scrollbar = tk.Scrollbar(frame_scroll, orient="vertical", command=canvas.yview) # Cria uma scrollbar vertical que muda o y visivel
     canvas.configure(yscrollcommand=scrollbar.set) # Relaciona o canvas (conteúddo visivel) com o estado da scrollbar
+
+    scrollbar.pack(side="right", fill="y")
+    canvas.pack(side="left", fill="both", expand=True)
 
     scrollable_frame = tk.Frame(canvas, bg="#f0f0f0") # Mais um frame (onde o conteúdo será inserido)
     scrollable_frame.bind(
@@ -327,9 +317,7 @@ def registrar_voto():
         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
     ) # Define toda a área do canvas como scrollavel
 
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    canvas.pack(side="left", fill="both", expand=True)
-    scrollbar.pack(side="left", fill="y", anchor="ne")
+    canvas.create_window((0, 0), window=scrollable_frame, width=canvas.winfo_width(), anchor="nw")
 
     # Exibir os candidatos com imagem + texto
     for c in candidatos:
@@ -344,7 +332,71 @@ def registrar_voto():
         label_info = tk.Label(frame_candidato, text=info, bg="white", justify="center") # Linha 42
         label_info.pack()
 
-def imprime_relatorio():
+def gerar_pdf():
+    # Criação da base do arquivo PDF que vai conter os resultados da votação
+    saida_pdf = FPDF() # Inicializa o arquivo onde será atribuido
+    saida_pdf.add_page() # Adciona uma página ao PDF
+
+    # Formatações do PDF
+    saida_pdf.set_font('Arial', size=12) # Define a fonte a paritr desse ponto do PDF
+    saida_pdf.cell(95, 20, txt=f"Data: {data_votacao}", ln=False, align="L") # Data no topo a esquerda
+    saida_pdf.image("logo-je.png", 75, 10, 50)
+    saida_pdf.cell(95, 20, txt=f"Inicio da votação: {inicio_votacao}", ln=True, align="R") # Hora no topo a direita
+    saida_pdf.set_font('Arial', 'B', size=30) # Define a fonte a paritr desse ponto do PDF
+    saida_pdf.cell(190, 40, txt="Resultados da votação:", ln=True, align="C") # Titulo centralizado abaixo das informações de tempo
+
+    # Preenche a página e o PDF com conteúdo
+    if total_votos > 0:
+        saida_pdf.set_font("Arial", size=12)
+        saida_pdf.cell(190, 0, txt=f"{mais_votado['nome']} ({mais_votado['partido']}): {mais_votado['votos']} votos", ln=True, align='C')
+        atual_y = saida_pdf.get_y()
+        if mais_votado["foto"]:
+            saida_pdf.image(mais_votado['foto'], 65, (atual_y+3), 80, 60)
+        else:
+            # Retângulo cinza
+            saida_pdf.set_fill_color(200, 200, 200)  # Cinza claro
+            saida_pdf.rect(65, (atual_y+3), 80, 60, 'F')  # 'F' = filled
+            # Texto "Sem imagem" centralizado
+            saida_pdf.set_xy(65, (atual_y+3) + 60 / 2 - 5)  # Centralizado verticalmente
+            saida_pdf.cell(80, 10, "Sem imagem", border=0, ln=0, align='C')
+            saida_pdf.set_xy(65, atual_y)  # Centralizado verticalmente
+        saida_pdf.set_y(atual_y + 75)
+        
+        for i, candidato in enumerate(outros_votados):
+            if saida_pdf.get_y() + 50 >= 277:
+                saida_pdf.add_page()
+                saida_pdf.set_y(15)
+            alinhamento = 'L' if i % 2 == 0 else 'R'
+            mudar_linha = True if alinhamento == 'R' else False
+            posFoto = 10 if alinhamento == 'L' else 120
+            saida_pdf.cell(95, 0, txt=f"{candidato['nome']} ({candidato['partido']}): {candidato['votos']} votos", ln=mudar_linha, align=alinhamento)
+            atual_y = saida_pdf.get_y()
+            if candidato["foto"]:
+                saida_pdf.image(candidato['foto'], posFoto, (atual_y+3), 80, 60)
+            else:
+                # Retângulo cinza
+                saida_pdf.set_fill_color(200, 200, 200)  # Cinza claro
+                saida_pdf.rect(posFoto, (atual_y+3), 80, 60, 'F')  # 'F' = filled
+
+                # Texto "Sem imagem" centralizado
+                antigo_x = saida_pdf.get_x()
+
+                saida_pdf.set_xy(posFoto, (atual_y+3) + 60 / 2 - 5)  # Centralizado verticalmente
+                saida_pdf.cell(80, 10, "Sem imagem", border=0, ln=0, align='C')
+                saida_pdf.set_xy(antigo_x, atual_y)  # Centralizado verticalmente
+            if alinhamento == 'R':
+                saida_pdf.set_y(atual_y + 75)
+    else:
+        saida_pdf.set_font("Arial", size=20)
+        saida_pdf.cell(190, 50, txt="Não houve votos válidos.", ln=True, align='C')
+
+    saida_pdf.set_font('Arial', 'B', size=30) # Define a fonte a paritr desse ponto do PDF
+    saida_pdf.cell(190, 40, txt="Fim do conteúdo", ln=True, align="C") # Titulo centralizado abaixo das informações de tempo
+
+    saida_pdf.output('Resultados_Votação.pdf')
+    webbrowser.open('Resultados_Votação.pdf')
+
+def ver_resultados():
     if not votacao_ativa:
         messagebox.showinfo("Erro", "A votação não pode ser encerrada antes de ser iniciada.")
         return
@@ -359,60 +411,23 @@ def imprime_relatorio():
     janela_relatorio.resizable(False, False) # Linha 15
     
     # Conteúdo da janela atual
-    botao_voltar = tk.Button(janela_relatorio, text="Voltar", bg="#e11c1c", fg="#ffffff", font=fonte_pequena,
-            command=lambda: (janela_relatorio.destroy(), janela.deiconify)) # Linha 45; Destrói janela atual e desesconde a principal
+    botao_voltar = tk.Button(janela_relatorio, text="Voltar", bg="#e11c1c", fg="#ffffff", font=fonte_media,
+            command=lambda: (janela_relatorio.destroy(), janela.deiconify())) # Linha 45; Destrói janela atual e desesconde a principal
     botao_voltar.pack(anchor="e") # Linha 46
 
+    global total_votos
     total_votos = sum(c["votos"] for c in candidatos)
 
     # Preenche a página e o PDF com conteúdo
     if total_votos > 0:
+        global candidatos_ord
         candidatos_ord = sorted(candidatos, key=lambda c: c["votos"], reverse=True)
+        global mais_votado
         mais_votado = candidatos_ord[0]
 
-        saida_pdf.set_font("Arial", size=12)
-        saida_pdf.cell(190, 0, txt=f"{mais_votado['nome']} ({mais_votado['partido']}): {mais_votado['votos']} votos", ln=True, align='C')
-        if mais_votado["foto"]:
-            atual_y = saida_pdf.get_y()
-            saida_pdf.image(mais_votado['foto'], 65, (atual_y+5), 80, 60)
-            saida_pdf.set_y(atual_y + 70)
-
+        global outros_votados
         outros_votados = candidatos_ord[1:]
-        
-        for i, candidato in enumerate(outros_votados):
-            if saida_pdf.get_y() + 70 >= 4000:
-                saida_pdf.add_page()
-            alinhamento = 'L' if i % 2 == 0 else 'R'
-            mudar_linha = True if alinhamento == 'R' else False
-            posFoto = 10 if alinhamento == 'L' else 120
-            saida_pdf.cell(95, 0, txt=f"{candidato['nome']} ({candidato['partido']}): {candidato['votos']} votos", ln=mudar_linha, align=alinhamento)
-            if candidato["foto"]:
-                atual_y = saida_pdf.get_y()
-                saida_pdf.image(candidato['foto'], posFoto, (atual_y+5), 80, 60)
-            else:
-                # Retângulo cinza
-                saida_pdf.set_fill_color(200, 200, 200)  # Cinza claro
-                saida_pdf.rect(posFoto, (atual_y+5), 80, 60, 'F')  # 'F' = filled
-
-                # Texto "Sem imagem" centralizado
-                saida_pdf.set_xy(posFoto, (atual_y+5) + 60 / 2 - 5)  # Centralizado verticalmente
-                saida_pdf.set_font("Arial", size=10)
-                saida_pdf.cell(80, 10, "Sem imagem", border=0, ln=0, align='C')
-            if alinhamento == 'R':
-                saida_pdf.set_y(atual_y + 70)
-
-    else:
-        saida_pdf.set_font("Arial", size=20)
-        saida_pdf.cell(190, 50, txt="Não houve votos válidos.", ln=True, align='C')
-
-    def gerar_pdf():
-        saida_pdf.output('Resultados_Votação.pdf')
-        webbrowser.open('Resultados_Votação.pdf')
 
     tk.Button(janela_relatorio, text="Gerar PDF", command=gerar_pdf).pack() # Linha 45
-
-def ver_resultados():
-    global votacao_ativa
-    imprime_relatorio()
 
 mostra_menu()
